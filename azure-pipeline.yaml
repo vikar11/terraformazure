@@ -1,0 +1,53 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+
+steps:
+
+- script: 'az login --service-principal -u 7c5034a1-96af-4aca-b2a4-f656ab02dd68 -p fb5b61cb-65d7-4a8f-9bd8-88f89cb45d6f --tenant a3126683-752c-460c-95db-f0007e4305ca az account set --subscription 5ab24318-463b-45a8-806d-cc2d0cf9a3d0'
+  displayName: 'Command Line Script'
+
+- task: TerraformTaskV4@4
+  displayName: Terraform Init
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Project'
+    backendServiceArm: 'azureterraform'
+    backendAzureRmResourceGroupName: 'Vikar-Terra-RG'
+    backendAzureRmStorageAccountName: 'vikarterrastatefile'
+    backendAzureRmContainerName: 'terraformstate'
+    backendAzureRmKey: 'terraform.tfstate'
+
+
+- task: TerraformTaskV4@4
+  displayName: Terraform Plan 
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Project'
+    environmentServiceNameAzureRM: 'azureterraform'
+
+- task: TerraformTaskV4@4
+  displayName: Terraform Apply
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/Project'
+    environmentServiceNameAzureRM: 'azureterraform'
+
+# - task: TerraformTaskV4@4
+#   displayName: Destroy
+#   inputs:
+#     provider: 'azurerm'
+#     command: 'destroy'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)/Project'
+#     environmentServiceNameAzureRM: 'azureterraform'
